@@ -23,18 +23,19 @@ int main(){
     string line; 
 
     // String that contains the line number of starting and ending values (e.g., "lines 41 to 43")
-    string str_to_find[] = {"Starting Values", "Certified Values", "Data "};
+    string str_to_find[] = {"Starting Values", "Certified Values", "Data ", 
+            " Response", " Predictor", " Observations", " Parameters"};
     // Total number of strings to be found
-    int num_str_to_find = 3;
+    int num_str_to_find = 7;
     
     
     //  size_t variable keeping track of strings to find
     size_t found_str;
 
     // Map of starting and ending indices ("start", "certified", "data")
-    int idx_vals[3][2];
+    int idx_vals[num_str_to_find][2];
     // Initialize the values to -1 (aribtrarily)
-    for(int i = 0; i<3; i++){
+    for(int i = 0; i<num_str_to_find; i++){
         for(int j = 0; j<2; j++){
             idx_vals[i][j] = -1;
         }
@@ -45,30 +46,34 @@ int main(){
 
     // Index of strings found so far
     int idx_strings_found = 0;
+
+    // Number of integers to be found varies between 1 and 2
+    int num_ints;
     while(getline(data_file, line) && idx_strings_found < num_str_to_find){
         line_number++;
         // Get starting values
         found_str = line.find(str_to_find[idx_strings_found]);
         if(found_str != string::npos){
             // Found string. Next string
-            get_line_numbers(line, idx_vals[idx_strings_found], 2);
+            (idx_strings_found < 3) ? (num_ints = 2) : (num_ints = 1);
+            
+            get_line_numbers(line, idx_vals[idx_strings_found], num_ints);
             // get_line_numbers(line, idx_starting_vals, 2);
-            cout << "Starting values: " << idx_vals[idx_strings_found][0] << "\t" << idx_vals[idx_strings_found][1] << endl;
+            cout << idx_vals[idx_strings_found][0] << "\t" << idx_vals[idx_strings_found][1] << endl;
             idx_strings_found++;
             continue;
         }
     }
-
     //*******************************
     // Get the data
     //*******************************
     // Number of data_points
 
-    cout << "Let's see what's left. Uhmmm" << endl;
-    while(getline(data_file, line)){
-        line_number++;
-        cout << line << endl;
-    }
+    // cout << "Let's see what's left. Uhmmm" << endl;
+    // while(getline(data_file, line)){
+    //     line_number++;
+    //     cout << line << endl;
+    // }
     
     data_file.close();
 }
