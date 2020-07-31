@@ -2,10 +2,11 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <map>
 
 using namespace std;
 
-void get_line_numbers(string, int *);
+void get_line_numbers(string, int *, int);
 
 int main(){
     string file_name = "Chwirut2_dat.txt";
@@ -22,72 +23,61 @@ int main(){
     string line; 
 
     // String that contains the line number of starting and ending values (e.g., "lines 41 to 43")
-    string str_starting_vals    = "Starting Values";
-    // String values containing the line number of the certified values
-    string str_certified_vals   = "Certified Values";
-    // String values containing the line number of the data
-    string str_data_vals        = "Data ";
-
-    //Boolean for each of the above string identifiers (true if found)
-    bool found_starting_vals   = false;
-    bool found_certified_vals  = false;
-    bool found_data_vals       = false;
+    string str_to_find[] = {"Starting Values", "Certified Values", "Data "};
+    // Total number of strings to be found
+    int num_str_to_find = 3;
+    
     
     //  size_t variable keeping track of strings to find
     size_t found_str;
 
-    int idx_starting_vals[]   = {-1, -1};
-    int idx_certified_vals[]  = {-1, -1};
-    int idx_data_vals []  = {-1, -1};
+    // Map of starting and ending indices ("start", "certified", "data")
+    int idx_vals[3][2];
+    // Initialize the values to -1 (aribtrarily)
+    for(int i = 0; i<3; i++){
+        for(int j = 0; j<2; j++){
+            idx_vals[i][j] = -1;
+        }
+    }
+
     // Integer keeping track of line numbers. First line is 1 (not zero)
     int line_number = 0;
-    while(getline(data_file, line)){
-        line_number += 1;
-        // Get starting values
-        if(!found_starting_vals){
-            found_str = line.find(str_starting_vals);
-            if(found_str != string::npos){
-                // Found string
-                str_starting_vals = line;
-                get_line_numbers(line, idx_starting_vals);
-                cout << "Starting values: " << idx_starting_vals[0] << "\t" << idx_starting_vals[1] << endl;
-                found_starting_vals = true;
-                continue;
-            }
-        }
-        // Get certified values
-        if(!found_certified_vals){
-            found_str = line.find(str_certified_vals);
-            if(found_str != string::npos){
-                // Found string
-                str_certified_vals = line;
-                get_line_numbers(line, idx_certified_vals);
-                cout << "Certified values: " << idx_certified_vals[0] << "\t" << idx_certified_vals[1] << endl;
-                found_certified_vals = true;
-                continue;
-            }
-        }
-        // Get data lines
-        if(!found_data_vals){
-            found_str = line.find(str_data_vals);
-            if(found_str != string::npos){
-                // Found string
-                str_data_vals = line;
-                get_line_numbers(line, idx_data_vals);
-                cout << "Data values: " << idx_data_vals[0] << "\t" << idx_data_vals[1] << endl;
-                found_data_vals = true;
-                continue;
-            }
-        }
 
+    // Index of strings found so far
+    int idx_strings_found = 0;
+    while(getline(data_file, line) && idx_strings_found < num_str_to_find){
+        line_number++;
+        // Get starting values
+        found_str = line.find(str_to_find[idx_strings_found]);
+        if(found_str != string::npos){
+            // Found string. Next string
+            get_line_numbers(line, idx_vals[idx_strings_found], 2);
+            // get_line_numbers(line, idx_starting_vals, 2);
+            cout << "Starting values: " << idx_vals[idx_strings_found][0] << "\t" << idx_vals[idx_strings_found][1] << endl;
+            idx_strings_found++;
+            continue;
+        }
+    }
+
+    //*******************************
+    // Get the data
+    //*******************************
+    // Number of data_points
+
+    cout << "Let's see what's left. Uhmmm" << endl;
+    while(getline(data_file, line)){
+        line_number++;
+        cout << line << endl;
+    }
+    
     data_file.close();
 }
 
 
 
-void get_line_numbers(string str, int * idx){
+void get_line_numbers(string str, int * idx, int num_ints){
     // Input: string containing lines information. E.g., "lines 41 to 43". 
-    // @params@input: num_ints: Number of expected values
+    // @params@input: num_ints: Number of expected (integers) values
     // Output: 2-element array
 
     stringstream ss;
@@ -97,15 +87,13 @@ void get_line_numbers(string str, int * idx){
     int found;
     // Temporary storage
     string temp;
-    while(!ss.eof()){
+    // The next index to be filled
+    int idx_found = 0;
+    while(!ss.eof() && idx_found < num_ints){
         ss >> temp;
         if(stringstream(temp)>>found){
-            if(idx[0] == -1){
-                idx[0] = found;
-            }else{
-                idx[1] = found;
-                break;
-            }
+            idx[idx_found] = found;
+            idx_found++;
         }
     }
 }
