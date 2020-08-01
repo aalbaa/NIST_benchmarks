@@ -28,4 +28,5 @@ int main(){
     delete p;
     cout << p[9][1] << endl;
 
+
 }

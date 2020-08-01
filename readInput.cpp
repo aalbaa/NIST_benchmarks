@@ -62,7 +62,6 @@ int main(){
     // Residual values
     double residual_arr[2];
 
-    int num_str_params_double;
     int idx_str_params_double = 0;
 
     // Integer keeping track of line numbers. First line is 1 (not zero)
@@ -114,7 +113,20 @@ int main(){
      * Data
      * */
     // Starting parameter values, certified value, and standard deviation
-    double params_vals[num_params][4];
+    // Temporarily stored at each line
+    double params_temp_vals[4];
+
+    // Starting values (there are two starting values).
+    double** params_starting_vals = new double*[num_params];
+    // Parametr certified value (first column) and standard deviation (second column)
+    double** params_certified_vals = new double*[num_params];
+
+    // Construct the 2D dynamic array 
+    for(int i = 0; i < num_params; i++){
+        params_starting_vals[i]  = new double[2];
+        params_certified_vals[i] = new double[2];
+    }
+
     // Data (inputs followed by outputs)
     double data_vals[num_observations][num_input + num_output];
 
@@ -134,7 +146,11 @@ int main(){
         // Get the starting and certified values
         if(line_number >= line_starting_vals && line_number - line_starting_vals < num_params){
             // Get the starting values first
-            get_line_numbers(line, params_vals[line_number-line_starting_vals], 4);
+            get_line_numbers(line, params_temp_vals, 4);
+            for(int i=0; i<2; i++){
+                params_starting_vals[line_number-line_starting_vals][i] = params_temp_vals[i];
+                params_certified_vals[line_number-line_starting_vals][i] = params_temp_vals[i+2];
+            }
             continue;
         }
         if(line_number >= line_data && line_number - line_data < num_observations){
@@ -143,35 +159,13 @@ int main(){
             continue;
         }
     }
-    
-    /*********
-     * Split the parameter values into 
-     *      starting parameters, 
-     *      certified parameters, and 
-     *      standard deviation
-     * */
 
-    // Starting values (there are two starting values).
-    double params_starting_vals[num_params][2];
-    // Parametr certified value (first column) and standard deviation (second column)
-    double params_certified_vals[num_params][2];
+    // // Print out all data values
+    // for(int i=0; i<num_params; i++){
+    //     cout << params_starting_vals[i][0] << "\t" <<
+    //         params_starting_vals[i][1] << endl;
+    // }    
 
-    for(int i = 0; i < num_params; i++){
-        for(int j = 0; j < 2; j++){
-            params_starting_vals[i][j] = params_vals[i][j];
-            params_certified_vals[i][j] = params_vals[i][2+j];
-        }
-    }    
-
-
-    // Let's print the values.
-    cout << "Values: " << endl;
-    for(int i = 0; i < num_params; i++){
-        for(int j = 0; j < 2; j++){
-            cout << params_certified_vals[i][j] << "\t";
-        }
-        cout << endl;
-    }    
     data_file.close();
 }
 
