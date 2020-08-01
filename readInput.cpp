@@ -37,7 +37,7 @@ int main(){
     //  size_t variable keeping track of strings to find
     size_t found_str;
 
-    // Map of starting and ending indices ("start", "certified", "data")
+    // Indices of starting values 
     int idx_vals[num_str_params_int][2];
     // Initialize the values to -1 (aribtrarily)
     for(int i = 0; i<num_str_params_int; i++){
