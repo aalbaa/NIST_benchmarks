@@ -53,6 +53,21 @@ class NIST_Parser{
             // Delete dynamic arrays
             delete[] line_numbers_intParams_;
             delete[] residual_arr_;
+
+            if(data_parsed_){
+                // Delete the 2D dynamic array 
+                for(int i = 0; i < num_params_; i++){
+                    delete[] params_starting_vals_[i];
+                    delete[] params_certified_vals_[i];
+                }
+                delete[] params_starting_vals_;
+                delete[] params_certified_vals_;
+
+                for(int i = 0; i < num_observations_; i++){
+                    delete[] data_vals_[i];
+                }
+                delete[] data_vals_;
+            }
         }
 
         void OpenFile(string file_name){
@@ -75,6 +90,36 @@ class NIST_Parser{
         // TEMPORARY! This function will not be used later
         int* line_numbers_intParams(){return line_numbers_intParams_;};
 
+        double* residual_arr(){
+            if(!param_lines_parsed_){
+                ParseParameterLines(); 
+            }
+            return residual_arr_;
+        }
+
+        double** params_starting_vals(){
+            if(!data_parsed_){
+                ParseData();
+            }
+
+            return params_starting_vals_;
+        }
+
+        double** params_certified_vals(){
+            if(!data_parsed_){
+                ParseData();
+            }
+
+            return params_certified_vals_;
+        }
+
+        double** data_vals(){
+            if(!data_parsed_){
+                ParseData();
+            }
+
+            return data_vals_;
+        }
         void ParseParameterLines(){
             // This function only gets the parameter lines (the integer parameters)
 
@@ -125,10 +170,74 @@ class NIST_Parser{
             // Number of observations
             num_observations_ = line_numbers_intParams_[5];
 
+            // 'Starting values' first line
+            line_starting_vals_ = line_numbers_intParams_[0];            
+
+            // 'data values' first line
+            line_data_ = line_numbers_intParams_[2];            
+
             // Flip the flag if parameters successfully read
             param_lines_parsed_ = true;
+
+            // Close file
+            file_stream_.close();
         }
 
+        void ParseData(){
+            // This function parses the starting and certified parameters, 
+            // and the data (x,y)
+            
+            
+            if(!param_lines_parsed_) ParseParameterLines();
+
+            // If file is open, close it and re-open
+            if(file_stream_.is_open()) CloseFile();
+            OpenFile();
+            
+            // Starting values (there are two starting values).
+            params_starting_vals_ = new double*[num_params_];
+            // Parametr certified value (first column) and standard deviation (second column)
+            params_certified_vals_ = new double*[num_params_];
+                    
+            // Construct the 2D dynamic array 
+            for(int i = 0; i < num_params_; i++){
+                params_starting_vals_[i]  = new double[2];
+                params_certified_vals_[i] = new double[2];
+            }
+            
+            // Construct the 2D array for data
+            data_vals_ = new double*[num_observations_];
+            for(int i=0; i<num_observations_; i++){
+                data_vals_[i] = new double[num_input_ + num_output_];
+            }
+
+            // Temporary array that's passed to the line parser
+            double params_temp_vals[4];
+
+            int line_number = 0;
+            string input_line;
+            while(getline(file_stream_, input_line)){
+                line_number++;
+
+                // Get the starting and certified values
+                if(line_number >= line_starting_vals_ && line_number - line_starting_vals_ < num_params_){
+                    // Get the starting values first
+                    GetLineNumbers(input_line, params_temp_vals, 4);
+                    for(int i = 0; i < 2; i++){
+                        params_starting_vals_[line_number-line_starting_vals_][i] = params_temp_vals[i];
+                        params_certified_vals_[line_number-line_starting_vals_][i] = params_temp_vals[i+2];
+                    }
+                    continue;
+                }
+                if(line_number >= line_data_ && line_number - line_data_ < num_observations_){
+                    // Get the data values first
+                    GetLineNumbers(input_line, data_vals_[line_number-line_data_], num_input_ + num_output_);
+                    continue;
+                }
+            }
+
+            data_parsed_ = true;
+        }
         int num_params(){
             if(!param_lines_parsed_) ParseParameterLines();
             return num_params_;
@@ -211,12 +320,17 @@ class NIST_Parser{
         // Number of observations
         int num_observations_;
 
+        // Line number where 'starting values' data starts
+        int line_starting_vals_;
+
+        // Line number where data starts
+        int line_data_;
+
         // ***************************
         // Flags
         // Flag indicating whether parameters have been read or not
         bool param_lines_parsed_ = false;
-        bool params_parsed_ = false;
-        bool values_parsed_ = false;
+        bool data_parsed_ = false;
 
 
 
@@ -229,19 +343,29 @@ class NIST_Parser{
         // Number of double parameters
         int num_doubleParams_;
         double* residual_arr_;
+        
+        // Starting values (there are two starting values).
+        double** params_starting_vals_;
+        // Parametr certified value (first column) and standard deviation (second column)
+        double** params_certified_vals_;
+
+        // Data 2D array
+        double** data_vals_;
 };
 
 int main(){
     string file_name = "Chwirut2_dat.txt";
     NIST_Parser nist_parser(file_name);
-    nist_parser.ParseParameterLines();
 
-    int* line_intParams = nist_parser.line_numbers_intParams();
+    double** data_vals = nist_parser.data_vals();
+    int num_observations = nist_parser.num_observations();
+
     // Print the parameter values
-    for(int i=0; i<kNum_intParams; i++){
-        cout << line_intParams[i] << endl;
+    for(int i = 0; i < num_observations; i++){
+        for(int j = 0; j < 2; j++){
+            cout << data_vals[i][0] << "\t" << 
+                data_vals[i][1] << endl;
+        }
     }
-
-    cout << "Number of observations: " << nist_parser.num_observations() << endl;
 }
 
