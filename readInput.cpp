@@ -46,8 +46,6 @@ int main(){
         }
     }
 
-    // Integer keeping track of line numbers. First line is 1 (not zero)
-    int line_number = 0;
 
     // Index of strings found so far
     int idx_strings_found = 0;
@@ -63,11 +61,12 @@ int main(){
 
     // Residual values
     double residual_arr[2];
-    // double residual_sum;
-    // // Residual standard deviation
-    // double residual_std;
+
     int num_str_params_double;
     int idx_str_params_double = 0;
+
+    // Integer keeping track of line numbers. First line is 1 (not zero)
+    int line_number = 0;
     while(getline(data_file, line) && idx_strings_found < num_str_params_int){
         line_number++;
         // Get starting values
@@ -94,20 +93,85 @@ int main(){
     
     cout << "Line number: " << line_number << endl;
 
-    // // Close and re-open file
-    // data_file.close();
-    // data_file.open(file_name);
+    // Number of parameters
+    int num_params = idx_vals[6][0];
+    // Number of inputs (predictor)
+    int num_input = idx_vals[4][0];
+    // Number of outputs (response)
+    int num_output = idx_vals[3][0];
+    // Number of observations
+    int num_observations = idx_vals[5][0];
 
-    // // /*******************************
-    // // // Get the data
-    // // Number of data_points
-    // // *******************************/
+    /**********************
+     * Starting lines
+     * */
+    // Starting values first line
+    int line_starting_vals = idx_vals[0][0];
+    // Data first line
+    int line_data = idx_vals[2][0];
 
-    // cout << "Let's see what's left. Uhmmm" << endl;
-    // while(getline(data_file, line)){
-    //     line_number++;
-    // }
+    /***************
+     * Data
+     * */
+    // Starting parameter values, certified value, and standard deviation
+    double params_vals[num_params][4];
+    // Data (inputs followed by outputs)
+    double data_vals[num_observations][num_input + num_output];
+
+    // Close and re-open file
+    data_file.close();
+    data_file.open(file_name);
+
+    /*******************************
+    // Get the data
+    Number of data_points
+    *******************************/
+   // Reset line number
+    line_number = 0;
+    while(getline(data_file, line)){
+        line_number++;
+
+        // Get the starting and certified values
+        if(line_number >= line_starting_vals && line_number - line_starting_vals < num_params){
+            // Get the starting values first
+            get_line_numbers(line, params_vals[line_number-line_starting_vals], 4);
+            continue;
+        }
+        if(line_number >= line_data && line_number - line_data < num_observations){
+            // Get the data values first
+            get_line_numbers(line, data_vals[line_number-line_data], num_input + num_output);
+            continue;
+        }
+    }
     
+    /*********
+     * Split the parameter values into 
+     *      starting parameters, 
+     *      certified parameters, and 
+     *      standard deviation
+     * */
+
+    // Starting values (there are two starting values).
+    double params_starting_vals[num_params][2];
+    // Parametr certified value (first column) and standard deviation (second column)
+    double params_certified_vals[num_params][2];
+
+    for(int i = 0; i < num_params; i++){
+        for(int j = 0; j < 2; j++){
+            params_starting_vals[i][j] = params_vals[i][j];
+            params_certified_vals[i][j] = params_vals[i][2+j];
+        }
+    }    
+
+
+    // Let's print the values.
+    cout << "Values: " << endl;
+    for(int i = 0; i < num_params; i++){
+        for(int j = 0; j < 2; j++){
+            cout << params_certified_vals[i][j] << "\t";
+        }
+        cout << endl;
+    }    
     data_file.close();
 }
 
