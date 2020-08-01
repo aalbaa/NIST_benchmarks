@@ -2,31 +2,23 @@
 #include <map>
 #include <string>
 
+#include "NIST_Parser.cpp"
+
 using namespace std;
 
 int main(){
-    map<std::string, int> map_test;
-    map_test["Hi"] = 99;
-    map_test["No"] = 12;
+    string file_name = "Chwirut2_dat.txt";
+    NIST_Parser nist_parser(file_name);
 
-    cout << map_test["no"] << endl;
+    double** data_vals = nist_parser.data_vals();
+    int num_observations = nist_parser.num_observations();
 
-    int** p = new int*[10];
-    for(int i = 0; i < 10; i++){
-        p[i] = new int[2];
-    }
-    for(int i=0; i<10; i++){
-        for(int j=0; j<2; j++){
-            p[i][j] = i+j;
+    // Print the parameter values
+    for(int i = 0; i < num_observations; i++){
+        for(int j = 0; j < 2; j++){
+            cout << data_vals[i][0] << "\t" << 
+                data_vals[i][1] << endl;
         }
     }
-
-    // Deleting
-    for(int i=0; i<10; i++){
-        delete p[i];
-    }   
-    delete p;
-    cout << p[9][1] << endl;
-
 
 }

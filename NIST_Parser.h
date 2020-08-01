@@ -4,15 +4,18 @@
 #include <sstream>
 #include <map>
 
+using namespace std;
+
+
 // Number of integer parameters
 const int kNum_intParams = 9;
 // Array of string names of the integer parameters
-const std::string kIntParams_arr[] = {"Starting Values", "Certified Values", "Data ", 
+const string kIntParams_arr[] = {"Starting Values", "Certified Values", "Data ", 
 " Response", " Predictor", " Observations", " Parameters", 
 "Degrees of Freedom", "Number of Observations"};
 
 // Array of string names of the residual parameters
-const std::string kDoubleParams_arr[] =  {"Residual Sum of Squares", "Residual Standard Deviation"};
+const string kDoubleParams_arr[] =  {"Residual Sum of Squares", "Residual Standard Deviation"};
 // Number of the 'double' type parameters (residuals)
 const int kNum_doubleParams = 2;
 
@@ -20,7 +23,7 @@ const int kNum_doubleParams = 2;
 class NIST_Parser{
 
     public:
-        NIST_Parser(std::string file_name){
+        NIST_Parser(string file_name){
             file_name_ = file_name;
 
             // Number of integer parameters
@@ -67,7 +70,7 @@ class NIST_Parser{
             }
         }
 
-        void OpenFile(std::string file_name){
+        void OpenFile(string file_name){
             // Set the new name
             file_name_ = file_name;
             if(!file_stream_.is_open()){
@@ -131,7 +134,7 @@ class NIST_Parser{
             size_t found_str;
 
             // Input lines
-            std::string input_line; 
+            string input_line; 
 
             // Integer keeping track of line numbers. First line is 1 (not zero)
             int line_number = 0;
@@ -143,14 +146,14 @@ class NIST_Parser{
                 line_number++;
                 // Get starting values
                 found_str = input_line.find(kIntParams_arr[num_intParams_found]);
-                if(found_str != std::string::npos){
+                if(found_str != string::npos){
                     GetLineNumbers(input_line, line_numbers_intParams_ + num_intParams_found, 1);
                     num_intParams_found++;
                     continue;
                 }
                 // Otherwise, look for the residual values
                 found_str = input_line.find(kDoubleParams_arr[num_doubleParams_found]);
-                if(found_str != std::string::npos){
+                if(found_str != string::npos){
                     // Add value to the array address so to store parameters in the appropriate element locations
                     GetLineNumbers(input_line,  residual_arr_ + num_doubleParams_found, 1);
                     num_doubleParams_found++;
@@ -212,7 +215,7 @@ class NIST_Parser{
             double params_temp_vals[4];
 
             int line_number = 0;
-            std::string input_line;
+            string input_line;
             while(getline(file_stream_, input_line)){
                 line_number++;
 
@@ -255,47 +258,47 @@ class NIST_Parser{
             return num_observations_;
         }
     private:
-        void GetLineNumbers(std::string str, double * vals, int num_vals){
+        void GetLineNumbers(string str, double * vals, int num_vals){
             // Get a line number from a string.
             // Input: string containing lines information. E.g., "lines 41 to 43". 
             // @params@input: num_vals: Number of expected (double) values
             // Output: 2-element array
 
-            std::stringstream ss;
+            stringstream ss;
             ss << str; 
             // Initialize values to -1 both
             // Variable used to indicate whether an iteger is found or not
             double found;
             // Temporary storage
-            std::string temp;
+            string temp;
             // The next index to be filled
             int idx_found = 0;
             while(!ss.eof() && idx_found < num_vals){
                 ss >> temp;
-                if(std::stringstream(temp)>>found){
+                if(stringstream(temp)>>found){
                     vals[idx_found] = found;
                     idx_found++;
                 }
             }
         }
         
-        void GetLineNumbers(std::string str, int * idx, int num_ints){
-            // Input: std::string containing lines information. E.g., "lines 41 to 43". 
+        void GetLineNumbers(string str, int * idx, int num_ints){
+            // Input: string containing lines information. E.g., "lines 41 to 43". 
             // @params@input: num_ints: Number of expected (integers) values
             // Output: 2-element array
 
-            std::stringstream ss;
+            stringstream ss;
             ss << str; 
             // Initialize values to -1 both
             // Variable used to indicate whether an iteger is found or not
             int found;
             // Temporary storage
-            std::string temp;
+            string temp;
             // The next index to be filled
             int idx_found = 0;
             while(!ss.eof() && idx_found < num_ints){
                 ss >> temp;
-                if(std::stringstream(temp)>>found){
+                if(stringstream(temp)>>found){
                     idx[idx_found] = found;
                     idx_found++;
                 }
@@ -303,10 +306,10 @@ class NIST_Parser{
         }
 
         // Input file stream
-        std::ifstream file_stream_;
+        ifstream file_stream_;
 
         // Filename
-        std::string file_name_ = "";
+        string file_name_ = "";
 
         // Number of parameters
         int num_params_;
@@ -349,20 +352,3 @@ class NIST_Parser{
         // Data 2D array
         double** data_vals_;
 };
-
-int main(){
-    std::string file_name = "Chwirut2_dat.txt";
-    NIST_Parser nist_parser(file_name);
-
-    double** data_vals = nist_parser.data_vals();
-    int num_observations = nist_parser.num_observations();
-
-    // Print the parameter values
-    for(int i = 0; i < num_observations; i++){
-        for(int j = 0; j < 2; j++){
-            std::cout << data_vals[i][0] << "\t" << 
-                data_vals[i][1] << std::endl;
-        }
-    }
-}
-
