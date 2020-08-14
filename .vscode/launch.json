@@ -8,7 +8,10 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
+            // "program": "${fileBasenameNoExtension}",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
+            // "program": "${fileDirname}/a.out",
+            // "program": "/mnt/c/Users/albaa/Google Drive/McGill OneDrive/Independent studies/Programming/cpp/NonlinearLeastSquares/a.out",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -22,7 +25,8 @@
                     "ignoreFailures": false
                 }
             ],
-            "preLaunchTask": "C/C++: g++ build active file",
+            // "preLaunchTask": "C/C++: g++ build active file",
+            "preLaunchTask": "C/C++: g++ build active file include Eigen",
             "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
