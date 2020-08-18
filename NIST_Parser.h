@@ -23,87 +23,21 @@ const int kNum_doubleParams = 2;
 class NIST_Parser{
 
     public:
-        NIST_Parser(string file_name){
-            file_name_ = file_name;
-
-            // Number of integer parameters
-            num_intParams_ = kNum_intParams;
-
-            // Number of double parameters
-            num_doubleParams_ = kNum_doubleParams;
-
-            // Array of residual errors
-            residual_arr_ = new double[num_doubleParams_];
-
-            // Line numbers of the integer parameters
-            line_numbers_intParams_ = new int[num_intParams_];
-            // Initialize to -1
-            for(int i=0; i<num_intParams_; i++){
-                line_numbers_intParams_[i] = -1;
-            }
-            
-        }
+        NIST_Parser(string file_name){}
         
-        ~NIST_Parser(){
-            // Close file if it's open
-            if(file_stream_.is_open()){
-                file_stream_.close();
-            }
+        ~NIST_Parser(){}
 
-            // Delete dynamic arrays
-            delete[] line_numbers_intParams_;
-            delete[] residual_arr_;
+        void OpenFile(string){}
 
-            if(data_parsed_){
-                // Delete the 2D dynamic array 
-                for(int i = 0; i < num_params_; i++){
-                    delete[] params_starting_vals_[i];
-                    delete[] params_certified_vals_[i];
-                }
-                delete[] params_starting_vals_;
-                delete[] params_certified_vals_;
-
-                for(int i = 0; i < num_observations_; i++){
-                    delete[] data_vals_[i];
-                }
-                delete[] data_vals_;
-            }
-        }
-
-        void OpenFile(string file_name){
-            // Set the new name
-            file_name_ = file_name;
-            if(!file_stream_.is_open()){
-                file_stream_.open(file_name_);
-            }
-        }
-
-        void CloseFile(){
-            if(file_stream_.is_open()){
-                file_stream_.close();
-            }
-        }
-        void OpenFile(){
-            return file_stream_.open(file_name_);
-        }
+        void CloseFile(){}
+        void OpenFile(){}
 
         // TEMPORARY! This function will not be used later
-        int* line_numbers_intParams(){return line_numbers_intParams_;};
+        int* line_numbers_intParams(){};
 
-        double* residual_arr(){
-            if(!param_lines_parsed_){
-                ParseParameterLines(); 
-            }
-            return residual_arr_;
-        }
+        double* residual_arr(){}
 
-        double** params_starting_vals(){
-            if(!data_parsed_){
-                ParseData();
-            }
-
-            return params_starting_vals_;
-        }
+        double** params_starting_vals(){}
 
         double** params_certified_vals(){
             if(!data_parsed_){
