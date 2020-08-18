@@ -1,4 +1,4 @@
-#include "NIST_Parser.cpp"
+// #include "NIST_Parser.cpp"
 #include <Eigen/Dense>
 #include <string>
 #include <iostream>
@@ -7,13 +7,13 @@ class NIST_Problem{
     public:
         NIST_Problem(){};
 
-        void setModelFunction(Eigen::MatrixXd (*func_ptr)(Eigen::MatrixXd x)){
+        void setModelFunction(double (*func_ptr)(Eigen::VectorXd x, Eigen::VectorXd b)){
             func_ptr_ = func_ptr;
         }
 
-        Eigen::MatrixXd model_function(Eigen::MatrixXd x){
+        double model_function(Eigen::VectorXd x, Eigen::VectorXd b){
             if(func_ptr_){
-                return func_ptr_(x);
+                return func_ptr_(x, b);
             }else{
                 throw;
             }
@@ -25,6 +25,8 @@ class NIST_Problem{
 
         int num_input(){return num_input_;}
 
+        int num_parameters(){return num_parameters_;}
+        
         void setNumberOfObservations(int num_observations){
             num_observations_ = num_observations;
         }
@@ -33,6 +35,10 @@ class NIST_Problem{
         }
         void setNumberOfInputs(int num_input){
             num_input_ = num_input;
+        }
+
+        void setNumberOfParameters(int num_parameters){
+            num_parameters_ = num_parameters;
         }
         void setInputMatrix(double** data_vals){
 
@@ -66,12 +72,13 @@ class NIST_Problem{
         }
 
         void setDataFromParser(double** data_vals, int num_observations, 
-            int num_outputs, int num_inputs){
+            int num_outputs, int num_inputs, int num_parameters){
                 setNumberOfObservations(num_observations);
                 setNumberOfOutputs(num_outputs);
                 setNumberOfInputs(num_inputs);
                 setInputMatrix(data_vals);
                 setOutputMatrix(data_vals);
+                setNumberOfParameters(num_parameters);
         }
 
         Eigen::MatrixXd input_data_matrix(){return input_data_;}
@@ -91,29 +98,31 @@ class NIST_Problem{
         Eigen::MatrixXd input_data_;
         Eigen::MatrixXd output_data_;
         
-        Eigen::MatrixXd (*func_ptr_)(Eigen::MatrixXd input) = nullptr;
+        double (*func_ptr_)(Eigen::VectorXd input, 
+            Eigen::VectorXd parameters);
 
         int num_observations_ = -1;
         int num_output_ = -1;
         int num_input_ = -1;
+        int num_parameters_ = -1;
 };
 
 
 // Model function
-Eigen::MatrixXd model_function_value(Eigen::MatrixXd x){
+double model_function_value(Eigen::VectorXd x, Eigen::VectorXd b){
     return x.transpose()*x;
 }
 
-int main(){
+// int main(){
 
-    std::string file_name = "Chwirut2_dat.txt";
-    NIST_Parser nist_parser(file_name);
+//     std::string file_name = "Chwirut2_dat.txt";
+//     NIST_Parser nist_parser(file_name);
 
-    NIST_Problem nist_problem;
-    nist_problem.setModelFunction(model_function_value);
+//     NIST_Problem nist_problem;
+//     nist_problem.setModelFunction(model_function_value);
 
-    nist_problem.setDataFromParser(nist_parser.data_vals(), nist_parser.num_observations(), 
-            nist_parser.num_output(), nist_parser.num_input());
-}
+//     nist_problem.setDataFromParser(nist_parser.data_vals(), nist_parser.num_observations(), 
+//             nist_parser.num_output(), nist_parser.num_input());
+// }
 
 
