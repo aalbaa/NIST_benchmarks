@@ -1,0 +1,2 @@
+# Goal
+This repository contains classes that implement least squares problems. The algorithms will be tested on the (NIST benchmarks)[https://www.itl.nist.gov/div898/strd/nls/nls_main.shtml]. Therefore, this repository will contain a parser for the NIST data, and a class that hosts the NIST problems.
