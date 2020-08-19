@@ -71,14 +71,32 @@ class NIST_Problem{
             output_data_ = output_matrix;
         }
 
+        void setCertifiedParameters(double** certified_parameters){
+            Eigen::VectorXd certified_parameters_temp(num_parameters_);
+            for(int i=0; i < num_parameters_; i++){
+                certified_parameters_temp(i) = certified_parameters[i][0];
+            }
+            certified_parameters_ = certified_parameters_temp;
+        }
+        void setInitialParameters(double** initial_parameters){
+            Eigen::VectorXd initial_parameters_temp(num_parameters_);
+            for(int i=0; i < num_parameters_; i++){
+                initial_parameters_temp(i) = initial_parameters[i][0];
+            }
+            initial_parameters_ = initial_parameters_temp;
+        }
         void setDataFromParser(double** data_vals, int num_observations, 
-            int num_outputs, int num_inputs, int num_parameters){
+            int num_outputs, int num_inputs, int num_parameters, 
+            double** certified_parameters, double** initial_parameters){
                 setNumberOfObservations(num_observations);
                 setNumberOfOutputs(num_outputs);
                 setNumberOfInputs(num_inputs);
                 setInputMatrix(data_vals);
                 setOutputMatrix(data_vals);
                 setNumberOfParameters(num_parameters);
+                
+                setCertifiedParameters(certified_parameters);
+                setInitialParameters(initial_parameters);
         }
 
         Eigen::MatrixXd input_data_matrix(){return input_data_;}
@@ -92,12 +110,22 @@ class NIST_Problem{
             return output_data_(row, col);
         }
 
+        Eigen::MatrixXd certified_parameters(){
+            return certified_parameters_;
+        }
+
+        Eigen::MatrixXd initial_parameters(){
+            return initial_parameters_;
+        }
 
     private:
         // Data inputs
         Eigen::MatrixXd input_data_;
         Eigen::MatrixXd output_data_;
         
+        Eigen::VectorXd certified_parameters_;
+        Eigen::VectorXd initial_parameters_;
+
         double (*func_ptr_)(Eigen::VectorXd input, 
             Eigen::VectorXd parameters);
 
@@ -105,6 +133,7 @@ class NIST_Problem{
         int num_output_ = -1;
         int num_input_ = -1;
         int num_parameters_ = -1;
+        
 };
 
 
