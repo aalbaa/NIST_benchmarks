@@ -100,39 +100,107 @@ int main(){
     
     Chwirut chwirut_problem(file_name);
 
-    std::cout << "Number of observations: " <<
-         chwirut_problem.nist_parser() -> num_observations() 
-         << std::endl;
-
-    std::cout << "Number of parameters: " << chwirut_problem.num_parameters()
-         << std::endl;
-
-    // Try out the function
+    // Pointer to the parser class
     NIST_Parser* p_nist_parser = chwirut_problem.nist_parser();
 
-    std::cout << "Certified values: " << std::endl;
-    std::cout << p_nist_parser -> params_certified_vals()[0][0] << std::endl;
-    std::cout << chwirut_problem.certified_parameters() << std::endl;
-
-    std::cout << "Testing function: " << std::endl;
-    std::cout << Eigen::VectorXd::Zero(1) << std::endl;
-    
-    Eigen::MatrixXd error_vals;
+    // **************************************************
+    // Declarations and initialization
+    // **************************************************
+    // Vector containing residual values 
+    Eigen::VectorXd error_vals;
+    // Matrix contianing residual jacobian
     Eigen::MatrixXd error_jac;
+    // Objective function value
+    double obj_func_val;
+    // Objective function gradient
+    Eigen::VectorXd obj_func_grad(chwirut_problem.num_parameters());
+    // Objective function Hessian (or approximate) matrix
+    Eigen::MatrixXd obj_func_hess(chwirut_problem.num_parameters(), 
+        chwirut_problem.num_parameters());
+    // Vector containing the parameters to be optimized about
+    Eigen::VectorXd params_k(chwirut_problem.num_parameters());
 
-    error_vals = chwirut_problem.error_function_value(
-        chwirut_problem.initial_parameters()
-        );
-    error_jac = chwirut_problem.error_function_jacobian(
-        chwirut_problem.initial_parameters()
-        );
+    // Search direction
+    Eigen::VectorXd d_k(chwirut_problem.num_parameters());
 
-    std::cout << "Errors:\n" << 
-        error_vals << std::endl << std::endl;
-    std::cout << "Errors jacobians:\n" << 
-        error_jac << std::endl << std::endl;
+    // Initialze parameters
+    params_k = chwirut_problem.initial_parameters();
 
-    std::cout << "Residual:\t" << error_vals.transpose()*error_vals 
+    // **************************************************
+    // Optimization parameters
+    // **************************************************
+    int max_iterations = 1e2;
+    // Stopping criterion
+    double stop_tol = 1e-10;
+    // Step length
+    float alpha = 0.9;
+    // Flag whether a solution is found or not
+    int iterations_at_exit = -1;
+
+    bool solution_found = false;
+    bool max_iterations_reached = false;
+    // Flag to output debugging details
+    bool print_debug = false;
+    // **************************************************
+    // Optimization
+    // **************************************************
+    for(int ii = 0; ii < max_iterations; ii++){
+        // Get error values and Jacobians
+        error_vals = chwirut_problem.error_function_value(params_k);
+        error_jac  = chwirut_problem.error_function_jacobian(params_k);
+
+        // objective function
+        obj_func_val = error_vals.transpose() * error_vals;
+        obj_func_grad = error_vals.transpose() * error_jac;
+
+        // Print obj. func. val
+        if(ii%10 == 0 &&  print_debug){
+            std::cout << "Obj. func. at " << 
+                ii << "\t" <<obj_func_val << 
+                ".\tObj. func. grad. norm: " <<
+                obj_func_grad.norm() <<
+                std::endl;
+        }
+        if(ii+1 == max_iterations){
+            max_iterations_reached = true;
+        }
+        if(obj_func_grad.norm() < stop_tol){
+            solution_found = true;
+            iterations_at_exit = ii;
+            break;
+        }
+
+        // Gauss-Newton Hessian approximation
+        obj_func_hess = error_jac.transpose() * error_jac;
+
+        d_k = - obj_func_hess.colPivHouseholderQr().solve(
+                obj_func_grad);
+
+        // Increment solution
+        params_k += alpha * d_k;                
+    }
+
+    if(solution_found){
+        std::cout << 
+        "Possible solution found. Detilas:" << std::endl <<
+        "\t" << "Residual        : " << obj_func_val << std::endl <<
+        "\t" << "Obj. func. Jac. : " << obj_func_grad.norm() << std::endl <<
+        "\t" << "Iterations      : " << iterations_at_exit << std::endl;
+        std::cout << "Analysis: " << std::endl <<
+        "\t" << "Solution:\n" << params_k << "\n" <<std::endl <<
+        "\t" << "Certified solution:\n" << 
+            chwirut_problem.certified_parameters() << "\n" <<std::endl <<
+        "\t" << "Difference:\n" << chwirut_problem.certified_parameters() -
+            params_k << "\n" << std::endl;
+        
+        std::cout << "\tComputed std:\n" << obj_func_hess.inverse().diagonal() << std::endl;
+        std::cout << "\tCertified std:\n" << chwirut_problem.certified_parameters_std() << std::endl;
+    }
+    if(max_iterations_reached){
+        std::cout << "Maximum iterations reached: " <<
+            max_iterations << std::endl;
+    }
+    std::cout << "Residual:" << error_vals.transpose()*error_vals 
         << std::endl;
     std::cout << "Obj. func. grad.:\n" << error_jac.transpose() * error_vals << std::endl;
 

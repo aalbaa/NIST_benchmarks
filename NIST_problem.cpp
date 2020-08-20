@@ -73,10 +73,13 @@ class NIST_Problem{
 
         void setCertifiedParameters(double** certified_parameters){
             Eigen::VectorXd certified_parameters_temp(num_parameters_);
+            Eigen::VectorXd certified_parameters_std_temp(num_parameters_);
             for(int i=0; i < num_parameters_; i++){
                 certified_parameters_temp(i) = certified_parameters[i][0];
+                certified_parameters_std_temp(i) = certified_parameters[i][1];
             }
             certified_parameters_ = certified_parameters_temp;
+            certified_parameters_std_ = certified_parameters_std_temp;
         }
         void setInitialParameters(double** initial_parameters){
             Eigen::VectorXd initial_parameters_temp(num_parameters_);
@@ -117,6 +120,9 @@ class NIST_Problem{
         Eigen::MatrixXd certified_parameters(){
             return certified_parameters_;
         }
+        Eigen::MatrixXd certified_parameters_std(){
+            return certified_parameters_std_;
+        }
 
         Eigen::MatrixXd initial_parameters(){
             return initial_parameters_;
@@ -128,6 +134,8 @@ class NIST_Problem{
         Eigen::MatrixXd output_data_;
         
         Eigen::VectorXd certified_parameters_;
+        // Standard deviation on the certified parameters
+        Eigen::VectorXd certified_parameters_std_;
         Eigen::VectorXd initial_parameters_;
 
         double (*func_ptr_)(Eigen::VectorXd input, 
