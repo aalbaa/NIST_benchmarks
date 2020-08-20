@@ -63,6 +63,31 @@ class Chwirut : public NIST_Problem{
             return error_residual;           
         }
 
+        Eigen::MatrixXd error_function_jacobian(
+                Eigen::MatrixXd input_data, 
+                Eigen::MatrixXd output_data,
+                Eigen::MatrixXd parameters){
+            // Residual vector            
+            Eigen::MatrixXd error_residual_jacobian
+                (num_observations(), num_parameters());
+                
+            // Input at iteration k
+            Eigen::VectorXd input_k(num_input());
+            // Gradient at iteration k
+            Eigen::MatrixXd gradient_k(num_output(), num_parameters());
+            for(int i = 0; i < num_observations(); i++){
+                for(int j = 0; j < num_input(); j++){
+                    input_k(j) = input_data(i, j);
+                }
+                gradient_k = model_function_gradient(input_k, parameters);
+                for(int j = 0; j < num_parameters(); j++){
+                    error_residual_jacobian(i, j) = gradient_k(j, 0);
+                }
+            }    
+            return error_residual_jacobian;           
+        }
+
+
     private:
         NIST_Parser* nist_parser_; 
 };
@@ -89,42 +114,28 @@ int main(){
 
     std::cout << "Testing function: " << std::endl;
     std::cout << Eigen::VectorXd::Zero(1) << std::endl;
-    Eigen::MatrixXd error_residual;
-    error_residual = chwirut_problem.error_function_value(
+    
+    Eigen::MatrixXd error_vals;
+    Eigen::MatrixXd error_jac;
+
+    error_vals = chwirut_problem.error_function_value(
         chwirut_problem.input_data_matrix(), 
         chwirut_problem.output_data_matrix(),
         chwirut_problem.initial_parameters()
         );
-    // error_residual = error_function_value(
-    //     [chwirut_problem](Eigen::VectorXd input, Eigen::VectorXd params)
-    //     {return chwirut_problem.model_function_value(input, params, chwirut_problem.num_output());}, 
-    //     chwirut_problem.input_data_matrix(), 
-    //     chwirut_problem.output_data_matrix(),
-    //     chwirut_problem.initial_parameters(),
-    //     chwirut_problem.num_observations()
-    //     );
+    error_jac = chwirut_problem.error_function_jacobian(
+        chwirut_problem.input_data_matrix(), 
+        chwirut_problem.output_data_matrix(),
+        chwirut_problem.initial_parameters()
+        );
 
-    // // Try out the error function    
-    // Eigen::VectorXd error_residual(chwirut_problem.num_observations());
-    // Eigen::VectorXd params_temp = chwirut_problem.initial_parameters();
-    // Eigen::VectorXd y_check;
-    // Eigen::VectorXd input_x = chwirut_problem.input_data_matrix();
-    // Eigen::VectorXd input_x_k;
-    // for(int i = 0; i < chwirut_problem.num_observations(); i++){
-    //     input_x_k = Eigen::VectorXd::Constant(1, 1, input_x(i));
-    //     y_check = chwirut_problem.model_function_value(input_x_k, params_temp);
-    //     error_residual(i) = 
-    //         y_check(0) - 
-    //         chwirut_problem.output_data_matrix()(i);
-    // }
-    // Eigen::MatrixXd A = Eigen::MatrixXd::Constant(1,1,10);
-    // Eigen::VectorXd x = Eigen::VectorXd::Constant(1, 20);
-    // std::cout << A << std::endl;
-    // std::cout << x  << std::endl;
+
     
-    std::cout << "Residuals:\n" << 
-        error_residual << std::endl;
+    std::cout << "Errors:\n" << 
+        error_vals << std::endl << std::endl;
+    std::cout << "Errors jacobians:\n" << 
+        error_jac << std::endl << std::endl;
 
-    std::cout << "Residual:\t" << error_residual.transpose()*error_residual 
+    std::cout << "Residual:\t" << error_vals.transpose()*error_vals 
         << std::endl;
 }   

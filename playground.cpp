@@ -42,10 +42,8 @@ int main(){
     MatrixXd inputMatrix = getInputMatrix(data_vals, nist_parser.num_observations(), 
             nist_parser.num_output(), nist_parser.num_input());
 
-    cout << "Output matrix: " << endl;
-    cout << outputMatrix << endl;
-    cout << "Input matrix: " << endl;
-    cout << inputMatrix << endl;
+    MatrixXd A = MatrixXd::Random(2, 2);
+    cout << A << endl;
 }
 
 
