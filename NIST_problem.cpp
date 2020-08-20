@@ -105,6 +105,10 @@ class NIST_Problem{
             return input_data_(row, col);
         }
 
+        double input_data_element(int row){
+            return input_data_(row);
+        }
+
         Eigen::MatrixXd output_data_matrix(){return output_data_;}
         double output_data_element(int row, int col){
             return output_data_(row, col);

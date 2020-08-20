@@ -21,17 +21,17 @@ class Chwirut : public NIST_Problem{
         }
 
         NIST_Parser* nist_parser(){return nist_parser_;}
+
         Eigen::MatrixXd model_function_value(Eigen::VectorXd x, 
                 Eigen::VectorXd b){
             // INPUTS:
             //      x   :   Function input
             //      b   :   Parameters
-            std::cout << "Inside model function" << std::endl;
             Eigen::VectorXd y(num_output());
             y(0) = exp(-b(0) * x(0)) / (b(1) + b(2) * x(0));
             return y;
         }
-
+        
         Eigen::MatrixXd model_function_gradient(Eigen::VectorXd x, 
             Eigen::VectorXd b){
                 Eigen::MatrixXd gradient(num_parameters(), num_input());
@@ -42,9 +42,31 @@ class Chwirut : public NIST_Problem{
                 return gradient;
             }
 
+        Eigen::VectorXd error_function_value(
+                Eigen::MatrixXd input_data, 
+                Eigen::MatrixXd output_data,
+                Eigen::MatrixXd parameters){
+            int num_observations = this -> num_observations();
+            // Residual vector            
+            Eigen::VectorXd error_residual(num_observations);
+            // Predicted output at each data point (changes at ever iteration)
+            Eigen::VectorXd y_check;
+            // Input at iteration k
+            Eigen::VectorXd input_k;
+            for(int i = 0; i < num_observations; i++){
+                input_k = Eigen::VectorXd::Constant(1, input_data(i));
+                y_check = model_function_value(input_k, parameters);
+                error_residual(i) = 
+                    y_check(0) - 
+                    output_data(i);
+            }    
+            return error_residual;           
+        }
+
     private:
         NIST_Parser* nist_parser_; 
 };
+
 
 int main(){
     std::string file_name = "Chwirut2_dat.txt";
@@ -67,6 +89,42 @@ int main(){
 
     std::cout << "Testing function: " << std::endl;
     std::cout << Eigen::VectorXd::Zero(1) << std::endl;
-    std::cout << chwirut_problem.model_function_value(Eigen::VectorXd::Zero(1), 
-            chwirut_problem.certified_parameters()) << std::endl;
-}
+    Eigen::MatrixXd error_residual;
+    error_residual = chwirut_problem.error_function_value(
+        chwirut_problem.input_data_matrix(), 
+        chwirut_problem.output_data_matrix(),
+        chwirut_problem.initial_parameters()
+        );
+    // error_residual = error_function_value(
+    //     [chwirut_problem](Eigen::VectorXd input, Eigen::VectorXd params)
+    //     {return chwirut_problem.model_function_value(input, params, chwirut_problem.num_output());}, 
+    //     chwirut_problem.input_data_matrix(), 
+    //     chwirut_problem.output_data_matrix(),
+    //     chwirut_problem.initial_parameters(),
+    //     chwirut_problem.num_observations()
+    //     );
+
+    // // Try out the error function    
+    // Eigen::VectorXd error_residual(chwirut_problem.num_observations());
+    // Eigen::VectorXd params_temp = chwirut_problem.initial_parameters();
+    // Eigen::VectorXd y_check;
+    // Eigen::VectorXd input_x = chwirut_problem.input_data_matrix();
+    // Eigen::VectorXd input_x_k;
+    // for(int i = 0; i < chwirut_problem.num_observations(); i++){
+    //     input_x_k = Eigen::VectorXd::Constant(1, 1, input_x(i));
+    //     y_check = chwirut_problem.model_function_value(input_x_k, params_temp);
+    //     error_residual(i) = 
+    //         y_check(0) - 
+    //         chwirut_problem.output_data_matrix()(i);
+    // }
+    // Eigen::MatrixXd A = Eigen::MatrixXd::Constant(1,1,10);
+    // Eigen::VectorXd x = Eigen::VectorXd::Constant(1, 20);
+    // std::cout << A << std::endl;
+    // std::cout << x  << std::endl;
+    
+    std::cout << "Residuals:\n" << 
+        error_residual << std::endl;
+
+    std::cout << "Residual:\t" << error_residual.transpose()*error_residual 
+        << std::endl;
+}   
