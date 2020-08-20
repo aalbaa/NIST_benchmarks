@@ -200,21 +200,28 @@ int main(){
         "\t" << "Obj. func. Jac. : " << obj_func_grad.norm() << std::endl <<
         "\t" << "Iterations      : " << iterations_at_exit << std::endl;
         std::cout << "Analysis: " << std::endl <<
-        "\t" << "Solution:\n" << params_k << "\n" <<std::endl <<
-        "\t" << "Certified solution:\n" << 
-            chwirut_problem.certified_parameters() << "\n" <<std::endl <<
-        "\t" << "Difference:\n" << chwirut_problem.certified_parameters() -
+        // "\t" << "Solution:\n" << params_k << "\n" <<std::endl <<
+        // "\t" << "Certified solution:\n" << 
+        //     chwirut_problem.certified_parameters() << "\n" <<std::endl <<
+        "\t" << "Solution difference:\n" << chwirut_problem.certified_parameters() -
             params_k << "\n" << std::endl;
         
         std::cout << "\tComputed std:\n" << obj_func_hess.inverse().diagonal() << std::endl;
         std::cout << "\tCertified std:\n" << chwirut_problem.certified_parameters_std() << std::endl;
+        std::cout << "\tDifference within bounds:" << std::endl;
+        int temp_bool;
+        for(int i = 0; i < chwirut_problem.num_parameters(); i++){
+            temp_bool = 
+                abs(chwirut_problem.certified_parameters()(i) - params_k(i)) <
+                     chwirut_problem.certified_parameters_std()(i);
+            std::cout << 
+                temp_bool
+                << "\n";
+        }
     }
     if(max_iterations_reached){
         std::cout << "Maximum iterations reached: " <<
             max_iterations << std::endl;
     }
-    std::cout << "Residual:" << error_vals.transpose()*error_vals 
-        << std::endl;
     std::cout << "Obj. func. grad.:\n" << error_jac.transpose() * error_vals << std::endl;
-
 }   
