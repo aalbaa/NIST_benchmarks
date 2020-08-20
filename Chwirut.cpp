@@ -132,8 +132,12 @@ int main(){
     int max_iterations = 1e2;
     // Stopping criterion
     double stop_tol = 1e-10;
-    // Step length
-    float alpha = 0.9;
+    // Armijo rule parameters
+    float alpha;
+    float beta = 0.9;
+    int max_iterations_armijo = 10;
+    Eigen::VectorXd error_vals_temp;
+    double obj_func_val_temp = -1;
     // Flag whether a solution is found or not
     int iterations_at_exit = -1;
 
@@ -176,7 +180,16 @@ int main(){
         d_k = - obj_func_hess.colPivHouseholderQr().solve(
                 obj_func_grad);
 
-        // Increment solution
+        // Armijo rule
+        for(int j = 0; j < max_iterations_armijo; j++){
+            error_vals_temp = chwirut_problem.error_function_value(
+                    params_k + pow(beta, j) * d_k);
+            obj_func_val_temp = error_vals_temp.transpose() * error_vals_temp;
+            if(obj_func_val_temp < obj_func_val){
+                alpha = pow(beta, j);
+                break;
+            }
+        }
         params_k += alpha * d_k;                
     }
 
