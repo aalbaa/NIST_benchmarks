@@ -43,10 +43,9 @@ class Chwirut : public NIST_Problem{
             }
 
         Eigen::VectorXd error_function_value(
+                Eigen::MatrixXd input_data, 
+                Eigen::MatrixXd output_data,
                 Eigen::MatrixXd parameters){
-            Eigen::MatrixXd *p_input_data = &input_data_;
-            Eigen::MatrixXd *p_output_data = &output_data_;
-
             int num_observations = this -> num_observations();
             // Residual vector            
             Eigen::VectorXd error_residual(num_observations);
@@ -55,20 +54,19 @@ class Chwirut : public NIST_Problem{
             // Input at iteration k
             Eigen::VectorXd input_k;
             for(int i = 0; i < num_observations; i++){
-                input_k = Eigen::VectorXd::Constant(1, (*p_input_data)(i));
+                input_k = Eigen::VectorXd::Constant(1, input_data(i));
                 y_check = model_function_value(input_k, parameters);
                 error_residual(i) = 
                     y_check(0) - 
-                    (*p_output_data)(i);
+                    output_data(i);
             }    
             return error_residual;           
         }
 
         Eigen::MatrixXd error_function_jacobian(
-                Eigen::MatrixXd parameters
-                ){
-            Eigen::MatrixXd *p_input_data = &input_data_;
-            Eigen::MatrixXd *p_output_data = &output_data_;
+                Eigen::MatrixXd input_data, 
+                Eigen::MatrixXd output_data,
+                Eigen::MatrixXd parameters){
             // Residual vector            
             Eigen::MatrixXd error_residual_jacobian
                 (num_observations(), num_parameters());
@@ -79,7 +77,7 @@ class Chwirut : public NIST_Problem{
             Eigen::MatrixXd gradient_k(num_output(), num_parameters());
             for(int i = 0; i < num_observations(); i++){
                 for(int j = 0; j < num_input(); j++){
-                    input_k(j) = (*p_input_data)(i, j);
+                    input_k(j) = input_data(i, j);
                 }
                 gradient_k = model_function_gradient(input_k, parameters);
                 for(int j = 0; j < num_parameters(); j++){
@@ -121,12 +119,24 @@ int main(){
     Eigen::MatrixXd error_jac;
 
     error_vals = chwirut_problem.error_function_value(
+        chwirut_problem.input_data_matrix(), 
+        chwirut_problem.output_data_matrix(),
         chwirut_problem.initial_parameters()
         );
     error_jac = chwirut_problem.error_function_jacobian(
+        chwirut_problem.input_data_matrix(), 
+        chwirut_problem.output_data_matrix(),
         chwirut_problem.initial_parameters()
         );
 
+
+    // Eigen::MatrixXd (*error_func_vals_lambda)(Eigen::VectorXd) = [chwirut_problem](Eigen::VectorXd params)
+    //     {return chwirut_problem.error_function_value(
+    //     chwirut_problem.input_data_matrix(), 
+    //     chwirut_problem.output_data_matrix(),
+    //     params
+    //     );};
+    
     std::cout << "Errors:\n" << 
         error_vals << std::endl << std::endl;
     std::cout << "Errors jacobians:\n" << 

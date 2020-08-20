@@ -122,7 +122,7 @@ class NIST_Problem{
             return initial_parameters_;
         }
 
-    private:
+    protected:
         // Data inputs
         Eigen::MatrixXd input_data_;
         Eigen::MatrixXd output_data_;
