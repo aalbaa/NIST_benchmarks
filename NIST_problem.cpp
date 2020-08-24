@@ -102,6 +102,9 @@ class NIST_Problem{
                 setInitialParameters(initial_parameters);
         }
 
+        Eigen::MatrixXd* p_input_data_matrix(){return &input_data_;}
+        Eigen::MatrixXd* p_output_data_matrix(){return &output_data_;}
+
         Eigen::MatrixXd input_data_matrix(){return input_data_;}
         
         double input_data_element(int row, int col){
@@ -128,13 +131,11 @@ class NIST_Problem{
             return initial_parameters_;
         }
 
-        // // Model function
-        // virtual Eigen::MatrixXd model_function_value(Eigen::VectorXd x, 
-        //     Eigen::VectorXd b) = 0;
+        static Eigen::MatrixXd model_function_value(Eigen::VectorXd x, 
+                Eigen::VectorXd b);
+        static Eigen::MatrixXd model_function_gradient(Eigen::VectorXd x, 
+            Eigen::VectorXd b);          
 
-        // // Model function gradient w.r.t. parameters
-        // virtual Eigen::MatrixXd model_function_gradient(Eigen::VectorXd x, 
-        //     Eigen::VectorXd b) = 0;
     protected:
         // Data inputs
         Eigen::MatrixXd input_data_;

@@ -17,26 +17,8 @@ int main(){
 
     double** data_vals = nist_parser.data_vals();
 
-    // // Matrix of the output values
-    // MatrixXd outputMatrix(nist_parser.num_observations(), nist_parser.num_output());
-    // // Matrix of input values
-    // MatrixXd inputMatrix(nist_parser.num_observations(), nist_parser.num_input());
-
-    // nist_parser.
-    // Convert the double array into a Matrix
     int num_observations = nist_parser.num_observations();
 
-    // // Print the parameter values
-    // for(int i = 0; i < num_observations; i++){
-    //     // First, the outputs
-    //     for(int j = 0; j < nist_parser.num_output(); j++){
-    //         outputMatrix(i, j) = data_vals[i][j];
-    //     }
-    //     // Now, the inputs
-    //     for(int j = 0; j < nist_parser.num_input(); j++){
-    //         inputMatrix(i, j) = data_vals[i][nist_parser.num_output() + j];
-    //     }
-    // }
     MatrixXd outputMatrix = getOutputMatrix(data_vals, nist_parser.num_observations(), 
             nist_parser.num_output());
     MatrixXd inputMatrix = getInputMatrix(data_vals, nist_parser.num_observations(), 
@@ -44,6 +26,8 @@ int main(){
 
     MatrixXd A = MatrixXd::Random(2, 2);
     cout << A << endl;
+
+    cout << A.cols() << endl;
 }
 
 
