@@ -22,25 +22,39 @@ class Chwirut : public NIST_Problem{
 
         NIST_Parser* nist_parser(){return nist_parser_;}
 
-        Eigen::MatrixXd model_function_value(Eigen::VectorXd x, 
+        static Eigen::MatrixXd model_function_value(Eigen::VectorXd x, 
                 Eigen::VectorXd b){
             // INPUTS:
             //      x   :   Function input
             //      b   :   Parameters
-            Eigen::VectorXd y(num_output());
+            int num_output = 1;
+            Eigen::VectorXd y(num_output);
             y(0) = exp(-b(0) * x(0)) / (b(1) + b(2) * x(0));
             return y;
         }
         
-        Eigen::MatrixXd model_function_gradient(Eigen::VectorXd x, 
+        static Eigen::MatrixXd model_function_gradient(Eigen::VectorXd x, 
             Eigen::VectorXd b){
-                Eigen::MatrixXd gradient(num_parameters(), num_input());
+                int num_parameters = 3;
+                int num_input = 1;
+
+                Eigen::MatrixXd gradient(num_parameters, num_input);
+
                 gradient(0) = -x(0) * exp(-b(0) * x(0)) / (b(1) + b(2) * x(0));
                 gradient(1) = - exp(-b(0) * x(0)) / pow(b(1) + b(2) * x(0), 2);
                 gradient(2) = -x(0) * exp(-b(0) * x(0)) / pow(b(1) + b(2) * x(0), 2);
 
                 return gradient;
             }
+        // Eigen::MatrixXd model_function_gradient(Eigen::VectorXd x, 
+        //     Eigen::VectorXd b){
+        //         Eigen::MatrixXd gradient(num_parameters(), num_input());
+        //         gradient(0) = -x(0) * exp(-b(0) * x(0)) / (b(1) + b(2) * x(0));
+        //         gradient(1) = - exp(-b(0) * x(0)) / pow(b(1) + b(2) * x(0), 2);
+        //         gradient(2) = -x(0) * exp(-b(0) * x(0)) / pow(b(1) + b(2) * x(0), 2);
+
+        //         return gradient;
+        //     }
 
         Eigen::VectorXd error_function_value(
                 Eigen::MatrixXd parameters){
