@@ -47,13 +47,12 @@ class Chwirut : public NIST_Problem{
                 return gradient;
             }
 
-        Eigen::VectorXd error_function_value(
+        static Eigen::VectorXd error_function_value(
                 Eigen::MatrixXd parameters, Eigen::MatrixXd* p_input_data, 
                 Eigen::MatrixXd* p_output_data){
-            // Eigen::MatrixXd *p_input_data = &input_data_;
-            // Eigen::MatrixXd *p_output_data = &output_data_;
 
-            int num_observations = this -> num_observations();
+            int num_observations = (*p_input_data).rows();
+
             // Residual vector            
             Eigen::VectorXd error_residual(num_observations);
             // Predicted output at each data point (changes at ever iteration)
