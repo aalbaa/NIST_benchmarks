@@ -46,22 +46,15 @@ class Chwirut : public NIST_Problem{
 
                 return gradient;
             }
-        // Eigen::MatrixXd model_function_gradient(Eigen::VectorXd x, 
-        //     Eigen::VectorXd b){
-        //         Eigen::MatrixXd gradient(num_parameters(), num_input());
-        //         gradient(0) = -x(0) * exp(-b(0) * x(0)) / (b(1) + b(2) * x(0));
-        //         gradient(1) = - exp(-b(0) * x(0)) / pow(b(1) + b(2) * x(0), 2);
-        //         gradient(2) = -x(0) * exp(-b(0) * x(0)) / pow(b(1) + b(2) * x(0), 2);
 
-        //         return gradient;
-        //     }
+        static Eigen::VectorXd error_function_value(
+                Eigen::MatrixXd parameters, Eigen::MatrixXd* p_input_data, 
+                        Eigen::MatrixXd* p_output_data){
+            // Eigen::MatrixXd *p_input_data = &input_data_;
+            // Eigen::MatrixXd *p_output_data = &output_data_;
 
-        Eigen::VectorXd error_function_value(
-                Eigen::MatrixXd parameters){
-            Eigen::MatrixXd *p_input_data = &input_data_;
-            Eigen::MatrixXd *p_output_data = &output_data_;
-
-            int num_observations = this -> num_observations();
+            // int num_observations = this -> num_observations();
+            int num_observations = (*p_input_data).cols();
             // Residual vector            
             Eigen::VectorXd error_residual(num_observations);
             // Predicted output at each data point (changes at ever iteration)
@@ -79,24 +72,30 @@ class Chwirut : public NIST_Problem{
         }
 
         Eigen::MatrixXd error_function_jacobian(
-                Eigen::MatrixXd parameters
+                Eigen::MatrixXd parameters, Eigen::MatrixXd* p_input_data, 
+                        Eigen::MatrixXd* p_output_data
                 ){
-            Eigen::MatrixXd *p_input_data = &input_data_;
-            Eigen::MatrixXd *p_output_data = &output_data_;
-            // Residual vector            
+            // Eigen::MatrixXd *p_input_data = &input_data_;
+            // Eigen::MatrixXd *p_output_data = &output_data_;
+            // Residual vector   
+            int num_observations = (*p_input_data).cols();         
+            int num_parameters = parameters.cols();
+            int num_input = (*p_input_data).rows();
+            int num_output = (*p_output_data).rows();
+            
             Eigen::MatrixXd error_residual_jacobian
-                (num_observations(), num_parameters());
+                (num_observations, num_parameters);
                 
             // Input at iteration k
-            Eigen::VectorXd input_k(num_input());
+            Eigen::VectorXd input_k(num_input);
             // Gradient at iteration k
-            Eigen::MatrixXd gradient_k(num_output(), num_parameters());
-            for(int i = 0; i < num_observations(); i++){
-                for(int j = 0; j < num_input(); j++){
+            Eigen::MatrixXd gradient_k(num_output, num_parameters);
+            for(int i = 0; i < num_observations; i++){
+                for(int j = 0; j < num_input; j++){
                     input_k(j) = (*p_input_data)(i, j);
                 }
                 gradient_k = model_function_gradient(input_k, parameters);
-                for(int j = 0; j < num_parameters(); j++){
+                for(int j = 0; j < num_parameters; j++){
                     error_residual_jacobian(i, j) = gradient_k(j, 0);
                 }
             }    
@@ -140,6 +139,9 @@ int main(){
     // Initialze parameters
     params_k = chwirut_problem.initial_parameters();
 
+    // Input and output data
+    Eigen::MatrixXd* input_data = chwirut_problem.p_input_data_matrix();
+    Eigen::MatrixXd* output_data = chwirut_problem.p_output_data_matrix();
     // **************************************************
     // Optimization parameters
     // **************************************************
@@ -164,47 +166,47 @@ int main(){
     // **************************************************
     for(int ii = 0; ii < max_iterations; ii++){
         // Get error values and Jacobians
-        error_vals = chwirut_problem.error_function_value(params_k);
-        error_jac  = chwirut_problem.error_function_jacobian(params_k);
+        error_vals = chwirut_problem.error_function_value(params_k, input_data, output_data);
+        error_jac  = chwirut_problem.error_function_jacobian(params_k, input_data, output_data);
 
-        // objective function
-        obj_func_val = error_vals.transpose() * error_vals;
-        obj_func_grad = error_vals.transpose() * error_jac;
+        // // objective function
+        // obj_func_val = error_vals.transpose() * error_vals;
+        // obj_func_grad = error_vals.transpose() * error_jac;
 
-        // Print obj. func. val
-        if(ii%10 == 0 &&  print_debug){
-            std::cout << "Obj. func. at " << 
-                ii << "\t" <<obj_func_val << 
-                ".\tObj. func. grad. norm: " <<
-                obj_func_grad.norm() <<
-                std::endl;
-        }
-        if(ii+1 == max_iterations){
-            max_iterations_reached = true;
-        }
-        if(obj_func_grad.norm() < stop_tol){
-            solution_found = true;
-            iterations_at_exit = ii;
-            break;
-        }
+        // // Print obj. func. val
+        // if(ii%10 == 0 &&  print_debug){
+        //     std::cout << "Obj. func. at " << 
+        //         ii << "\t" <<obj_func_val << 
+        //         ".\tObj. func. grad. norm: " <<
+        //         obj_func_grad.norm() <<
+        //         std::endl;
+        // }
+        // if(ii+1 == max_iterations){
+        //     max_iterations_reached = true;
+        // }
+        // if(obj_func_grad.norm() < stop_tol){
+        //     solution_found = true;
+        //     iterations_at_exit = ii;
+        //     break;
+        // }
 
-        // Gauss-Newton Hessian approximation
-        obj_func_hess = error_jac.transpose() * error_jac;
+        // // Gauss-Newton Hessian approximation
+        // obj_func_hess = error_jac.transpose() * error_jac;
 
-        d_k = - obj_func_hess.colPivHouseholderQr().solve(
-                obj_func_grad);
+        // d_k = - obj_func_hess.colPivHouseholderQr().solve(
+        //         obj_func_grad);
 
-        // Armijo rule
-        for(int j = 0; j < max_iterations_armijo; j++){
-            error_vals_temp = chwirut_problem.error_function_value(
-                    params_k + pow(beta, j) * d_k);
-            obj_func_val_temp = error_vals_temp.transpose() * error_vals_temp;
-            if(obj_func_val_temp < obj_func_val){
-                alpha = pow(beta, j);
-                break;
-            }
-        }
-        params_k += alpha * d_k;                
+        // // Armijo rule
+        // for(int j = 0; j < max_iterations_armijo; j++){
+        //     error_vals_temp = chwirut_problem.error_function_value(
+        //             params_k + pow(beta, j) * d_k);
+        //     obj_func_val_temp = error_vals_temp.transpose() * error_vals_temp;
+        //     if(obj_func_val_temp < obj_func_val){
+        //         alpha = pow(beta, j);
+        //         break;
+        //     }
+        // }
+        // params_k += alpha * d_k;                
     }
 
     if(solution_found){
