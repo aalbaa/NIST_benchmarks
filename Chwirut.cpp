@@ -69,25 +69,29 @@ class Chwirut : public NIST_Problem{
             return error_residual;           
         }
 
-        Eigen::MatrixXd error_function_jacobian(
-                Eigen::MatrixXd parameters
-                ){
-            Eigen::MatrixXd *p_input_data = &input_data_;
-            Eigen::MatrixXd *p_output_data = &output_data_;
+        static Eigen::MatrixXd error_function_jacobian(
+                Eigen::MatrixXd parameters, Eigen::MatrixXd* p_input_data, 
+                Eigen::MatrixXd* p_output_data){
+
+            int num_observations = (*p_input_data).rows();
+            int num_parameters = parameters.rows();
+            int num_input = (*p_input_data).cols();
+            int num_output = (*p_output_data).cols();
+
             // Residual vector            
             Eigen::MatrixXd error_residual_jacobian
-                (num_observations(), num_parameters());
+                (num_observations, num_parameters);
                 
             // Input at iteration k
-            Eigen::VectorXd input_k(num_input());
+            Eigen::VectorXd input_k(num_input);
             // Gradient at iteration k
-            Eigen::MatrixXd gradient_k(num_output(), num_parameters());
-            for(int i = 0; i < num_observations(); i++){
-                for(int j = 0; j < num_input(); j++){
+            Eigen::MatrixXd gradient_k(num_output, num_parameters);
+            for(int i = 0; i < num_observations; i++){
+                for(int j = 0; j < num_input; j++){
                     input_k(j) = (*p_input_data)(i, j);
                 }
                 gradient_k = model_function_gradient(input_k, parameters);
-                for(int j = 0; j < num_parameters(); j++){
+                for(int j = 0; j < num_parameters; j++){
                     error_residual_jacobian(i, j) = gradient_k(j, 0);
                 }
             }    
@@ -160,8 +164,10 @@ int main(){
     // **************************************************
     for(int ii = 0; ii < max_iterations; ii++){
         // Get error values and Jacobians
-        error_vals = chwirut_problem.error_function_value(params_k, p_input_matrix, p_output_matrix);
-        error_jac  = chwirut_problem.error_function_jacobian(params_k);
+        error_vals = chwirut_problem.error_function_value(params_k, 
+            p_input_matrix, p_output_matrix);
+        error_jac  = chwirut_problem.error_function_jacobian(params_k, 
+            p_input_matrix, p_output_matrix);
 
         // objective function
         obj_func_val = error_vals.transpose() * error_vals;
